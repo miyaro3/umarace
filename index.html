@@ -2,8 +2,11 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Twitch 枠順競馬レース</title>
+    <title>Twitch 枠順競馬レース - カスタム設定版</title>
     <style>
+        /* 全要素に適用してはみ出しを防止 */
+        * { box-sizing: border-box; }
+
         body { background-color: #222; color: white; font-family: "MS UI Gothic", sans-serif; margin: 0; overflow: hidden; display: flex; }
         
         /* ログイン画面のスタイル */
@@ -11,14 +14,44 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #333; display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 9999;
+            overflow-y: auto;
+            padding: 20px;
         }
+        .config-group { 
+            background: #444; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6); 
+            width: 100%;
+            max-width: 420px; /* 横幅に少し余裕を持たせる */
+            height: auto;
+            border: 1px solid #555;
+        }
+        .config-item { margin-bottom: 15px; display: flex; flex-direction: column; }
+        .config-item label { font-size: 13px; margin-bottom: 5px; color: #bbb; font-weight: bold; }
+        
         #login-screen input { 
-            padding: 10px; font-size: 18px; width: 250px; border-radius: 5px; border: none; margin-bottom: 10px;
+            width: 100%; /* 親要素の幅いっぱいに広げる */
+            padding: 10px; 
+            font-size: 16px; 
+            border-radius: 4px; 
+            border: 1px solid #222; 
+            background: #1a1a1a; 
+            color: #fff;
+            outline: none;
         }
-        #login-screen button {
-            padding: 10px 20px; font-size: 18px; cursor: pointer; background: #9146ff; color: white; border: none; border-radius: 5px;
-        }
+        
+        /* 2カラムレイアウト用 */
+        .config-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .config-row .config-item { flex: 1; margin-bottom: 0; }
 
+        #login-screen button {
+            padding: 14px; font-size: 18px; cursor: pointer; background: #9146ff; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 100%;
+            transition: background 0.2s;
+        }
+        #login-screen button:hover { background: #a970ff; }
+
+        /* ゲーム画面用スタイル */
         #sidebar { width: 280px; background: #111; border-right: 2px solid #555; height: 100vh; overflow-y: auto; padding: 10px; font-size: 16px; position: relative; z-index: 1000; }
         #controls-info { 
             position: absolute; bottom: 20px; left: 10px; right: 10px;
@@ -26,7 +59,7 @@
             background: rgba(50,50,50,0.9); padding: 15px; border: 2px solid #888; border-radius: 8px;
         }
         #controls-info strong { color: #ffff00; font-size: 20px; }
-        #main { flex-grow: 1; position: relative; background: #3a7d44; height: 100vh; overflow: hidden; display: none; } /* 初期は非表示 */
+        #main { flex-grow: 1; position: relative; background: #3a7d44; height: 100vh; overflow: hidden; display: none; }
         #track { position: relative; width: 100%; height: 750px; border-top: 4px solid #fff; border-bottom: 4px solid #fff; margin-top: 20px; background-image: linear-gradient(#458b52 50%, #3a7d44 50%); background-size: 100% 80px; }
         .lane { position: relative; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
         .finish-line { position: absolute; right: 120px; top: 0; width: 10px; height: 100%; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); }
@@ -64,10 +97,51 @@
 <body>
 
 <div id="login-screen">
-    <h2 style="color: #9146ff;">Twitch Horse Race</h2>
-    <input type="text" id="channel-input" placeholder="チャンネル名を入力">
-    <button onclick="startConnection()">接続して開始</button>
-    <div id="login-msg" style="margin-top:10px; color: #ff4444;"></div>
+    <div class="config-group">
+        <h2 style="color: #9146ff; text-align: center; margin: 0 0 20px 0;">Race Config</h2>
+        
+        <div class="config-item">
+            <label>Twitch チャンネル名</label>
+            <input type="text" id="channel-input" placeholder="example_channel">
+        </div>
+
+        <div class="config-item">
+            <label>初期所持金 (円)</label>
+            <input type="number" id="initial-money-input" value="100000">
+        </div>
+
+        <div class="config-row">
+            <div class="config-item">
+                <label>1着賞金 (円)</label>
+                <input type="number" id="prize1-input" value="50000">
+            </div>
+            <div class="config-item">
+                <label>初期プール (円)</label>
+                <input type="number" id="pool-input" value="30000">
+            </div>
+        </div>
+
+        <div class="config-row">
+            <div class="config-item">
+                <label>2着賞金 (円)</label>
+                <input type="number" id="prize2-input" value="20000">
+            </div>
+            <div class="config-item">
+                <label>待機時間 (秒)</label>
+                <input type="number" id="wait-input" value="300">
+            </div>
+        </div>
+
+        <div class="config-row">
+            <div class="config-item">
+                <label>3着賞金 (円)</label>
+                <input type="number" id="prize3-input" value="10000">
+            </div>
+            <div style="flex: 1;"></div> </div>
+
+        <button onclick="startConnection()">設定を保存して開始</button>
+        <div id="login-msg" style="margin-top:15px; color: #ff4444; font-size: 14px; text-align: center; min-height: 1.2em;"></div>
+    </div>
 </div>
 
 <div id="sidebar">
@@ -117,13 +191,18 @@
 </div>
 
 <script>
+    // JavaScript部分は前回のロジックをそのまま継承
     let MY_CHANNEL = "";
-    const INITIAL_MONEY = 100000;
+    let INITIAL_MONEY = 100000;
     const ENTRY_FEE = 10000;
     const VOTE_FEE = 10000;
-    const WAIT_TIME = 300; 
     const VOTE_UNIT = 1000; 
-    const TOTAL_DUMMY_MONEY = 30000; 
+
+    let PRIZE_1 = 50000;
+    let PRIZE_2 = 20000;
+    let PRIZE_3 = 10000;
+    let TOTAL_DUMMY_MONEY = 30000;
+    let WAIT_TIME = 300;
 
     let users = {};
     let participants = []; 
@@ -138,12 +217,20 @@
     const WAKU_COLORS = ["#ffffff", "#222222", "#ff0000", "#3333ff", "#ffff00", "#00aa00", "#ff8c00", "#ffc0cb"];
 
     function startConnection() {
-        const input = document.getElementById('channel-input').value.trim();
-        if (!input) {
+        const channelInput = document.getElementById('channel-input').value.trim();
+        if (!channelInput) {
             document.getElementById('login-msg').innerText = "チャンネル名を入力してください。";
             return;
         }
-        MY_CHANNEL = input.toLowerCase();
+
+        MY_CHANNEL = channelInput.toLowerCase();
+        INITIAL_MONEY = parseInt(document.getElementById('initial-money-input').value) || 0;
+        PRIZE_1 = parseInt(document.getElementById('prize1-input').value) || 0;
+        PRIZE_2 = parseInt(document.getElementById('prize2-input').value) || 0;
+        PRIZE_3 = parseInt(document.getElementById('prize3-input').value) || 0;
+        TOTAL_DUMMY_MONEY = parseInt(document.getElementById('pool-input').value) || 0;
+        WAIT_TIME = parseInt(document.getElementById('wait-input').value) || 300;
+
         connect();
     }
 
@@ -184,8 +271,10 @@
         
         for(let i=1; i<=8; i++) dummyVoteCounts[i] = 1;
         let remainingVotes = (TOTAL_DUMMY_MONEY / VOTE_UNIT) - 8;
-        for(let j=0; j < remainingVotes; j++) {
-            dummyVoteCounts[Math.floor(Math.random() * 8) + 1]++;
+        if(remainingVotes > 0) {
+            for(let j=0; j < remainingVotes; j++) {
+                dummyVoteCounts[Math.floor(Math.random() * 8) + 1]++;
+            }
         }
 
         availableSlots = [1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
@@ -266,13 +355,13 @@
         const second = winners[1];
         const third = winners[2];
 
-        document.getElementById('result-1').innerHTML = `1着: ${top.name} (${top.waku}枠) <span class="prize-text">+30,000円</span>`;
-        if (second) document.getElementById('result-2').innerHTML = `2着: ${second.name} (${second.waku}枠) <span class="prize-text">+10,000円</span>`;
-        if (third) document.getElementById('result-3').innerHTML = `3着: ${third.name} (${third.waku}枠) <span class="prize-text">+5,000円</span>`;
+        document.getElementById('result-1').innerHTML = `1着: ${top.name} (${top.waku}枠) <span class="prize-text">+${PRIZE_1.toLocaleString()}円</span>`;
+        if (second) document.getElementById('result-2').innerHTML = `2着: ${second.name} (${second.waku}枠) <span class="prize-text">+${PRIZE_2.toLocaleString()}円</span>`;
+        if (third) document.getElementById('result-3').innerHTML = `3着: ${third.name} (${third.waku}枠) <span class="prize-text">+${PRIZE_3.toLocaleString()}円</span>`;
 
-        if (!top.isCPU) users[top.name].money += 30000;
-        if (second && !second.isCPU) users[second.name].money += 10000;
-        if (third && !third.isCPU) users[third.name].money += 5000;
+        if (!top.isCPU) users[top.name].money += PRIZE_1;
+        if (second && !second.isCPU) users[second.name].money += PRIZE_2;
+        if (third && !third.isCPU) users[third.name].money += PRIZE_3;
 
         const winWaku = top.waku;
         const userVoteUnits = (VOTE_FEE / VOTE_UNIT); 
@@ -332,9 +421,9 @@
             if (gameState === 'WAITING') {
                 const simulatedTotal = currentTotalPool + userVoteUnits;
                 const simulatedWaku = counts[i] + userVoteUnits;
-                o = (simulatedTotal / simulatedWaku).toFixed(1);
+                o = (simulatedTotal / (simulatedWaku || 1)).toFixed(1);
             } else {
-                o = (currentTotalPool / counts[i]).toFixed(1);
+                o = (currentTotalPool / (counts[i] || 1)).toFixed(1);
             }
             html += `<span class="waku-bg-${i}" style="padding:4px 8px; margin:2px; border-radius:3px; font-weight:bold;">${i}:${o}</span>`;
         }
@@ -392,7 +481,6 @@
             const raw = e.data;
             if (raw.includes('PING')) socket.send('PONG :tmi.twitch.tv');
             
-            // 接続成功メッセージ(001)を受信したらゲーム開始
             if (raw.includes(' 001 ')) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main').style.display = 'block';
