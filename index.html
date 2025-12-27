@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Twitch 枠順競馬レース</title>
+    <style>
+        body { background-color: #222; color: white; font-family: "MS UI Gothic", sans-serif; margin: 0; overflow: hidden; display: flex; }
+        
+        /* ログイン画面のスタイル */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #333; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+        }
+        #login-screen input { 
+            padding: 10px; font-size: 18px; width: 250px; border-radius: 5px; border: none; margin-bottom: 10px;
+        }
+        #login-screen button {
+            padding: 10px 20px; font-size: 18px; cursor: pointer; background: #9146ff; color: white; border: none; border-radius: 5px;
+        }
+
+        #sidebar { width: 280px; background: #111; border-right: 2px solid #555; height: 100vh; overflow-y: auto; padding: 10px; font-size: 16px; position: relative; z-index: 1000; }
+        #controls-info { 
+            position: absolute; bottom: 20px; left: 10px; right: 10px;
+            font-size: 18px; line-height: 1.4; color: #fff; 
+            background: rgba(50,50,50,0.9); padding: 15px; border: 2px solid #888; border-radius: 8px;
+        }
+        #controls-info strong { color: #ffff00; font-size: 20px; }
+        #main { flex-grow: 1; position: relative; background: #3a7d44; height: 100vh; overflow: hidden; display: none; } /* 初期は非表示 */
+        #track { position: relative; width: 100%; height: 750px; border-top: 4px solid #fff; border-bottom: 4px solid #fff; margin-top: 20px; background-image: linear-gradient(#458b52 50%, #3a7d44 50%); background-size: 100% 80px; }
+        .lane { position: relative; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
+        .finish-line { position: absolute; right: 120px; top: 0; width: 10px; height: 100%; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); }
+        .horse-container { position: absolute; left: 10px; display: flex; flex-direction: column; align-items: center; z-index: 100; }
+        .horse-name { font-size: 12px; white-space: nowrap; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 3px; margin-bottom: 1px; }
+        .horse-sprite { width: 32px; height: 32px; image-rendering: pixelated; }
+
+        /* 枠色 */
+        .waku-bg-1 { background-color: #ffffff; color: #000; } 
+        .waku-bg-2 { background-color: #000000; color: #fff; }
+        .waku-bg-3 { background-color: #ff0000; color: #fff; } 
+        .waku-bg-4 { background-color: #0000ff; color: #fff; }
+        .waku-bg-5 { background-color: #ffff00; color: #000; } 
+        .waku-bg-6 { background-color: #008000; color: #fff; }
+        .waku-bg-7 { background-color: #ff8c00; color: #fff; } 
+        .waku-bg-8 { background-color: #ffc0cb; color: #000; }
+        
+        #denko-board {
+            position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+            width: 80%; background: #000; border: 4px solid #444; padding: 20px;
+            box-shadow: 0 0 20px #000; display: none; z-index: 2000;
+        }
+        .led-text { font-family: 'Courier New', monospace; color: #ff8800; text-shadow: 0 0 5px #ff4400; font-size: 26px; font-weight: bold; margin: 8px 0; border-bottom: 1px dashed #333; }
+        .prize-text { color: #ffff00; font-size: 18px; margin-left: 15px; }
+        #payout-list { color: #00ff00; font-family: 'Courier New', monospace; font-size: 22px; margin-top: 15px; }
+        #waiting-area { position: absolute; top: 100px; left: 20px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; width: 95%; z-index: 500; }
+        .waku-slot { border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); min-height: 120px; padding: 5px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; }
+        .waku-header { width: 100%; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-radius: 3px; }
+        .waiting-unit { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 5px; }
+        .waiting-name { font-size: 10px; font-weight: bold; color: white; text-align: center; overflow: hidden; width: 100%; }
+        .user-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333; align-items: center; }
+        .vote-badge { font-size: 12px; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-left: 5px; border: 1px solid #555; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <h2 style="color: #9146ff;">Twitch Horse Race</h2>
+    <input type="text" id="channel-input" placeholder="チャンネル名を入力">
+    <button onclick="startConnection()">接続して開始</button>
+    <div id="login-msg" style="margin-top:10px; color: #ff4444;"></div>
+</div>
+
+<div id="sidebar">
+    <h3>所持金ランキング</h3>
+    <div id="user-list"></div>
+    <div id="controls-info">
+        <strong>【ルール】</strong><br>
+        <span style="color:#00ff00">!race</span> : 参加(1万/16頭迄)<br>
+        <span style="color:#ffaa00">!vote 枠</span> : 投票(最大3枚)<br>
+        <span style="color:#00ffff">!start</span> : 即開始<br>
+        <hr style="border:0; border-top:1px solid #555;">
+        <span style="color:#ffcc00;">★参加者は1枚目のみ無料！</span><br>
+        (2枚目・3枚目は各1万必要)
+    </div>
+</div>
+
+<div id="main">
+    <div style="padding:15px; background: rgba(0,0,0,0.6); position: relative; z-index: 100;">
+        <div id="twitch-status" style="font-size:14px; color:#aaa;">接続待機中...</div>
+        <div id="timer-display" style="font-size: 24px; color: #ffff00; font-weight: bold;"></div>
+        <div id="odds-display" style="margin-top:8px;"></div>
+    </div>
+    
+    <div id="denko-board">
+        <div style="color: #fff; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #fff;">確定 - RESULT</div>
+        <div id="result-1" class="led-text"></div>
+        <div id="result-2" class="led-text"></div>
+        <div id="result-3" class="led-text"></div>
+        <div id="payout-list"></div>
+    </div>
+
+    <div id="waiting-area">
+        <div class="waku-slot" id="ws-1"><div class="waku-header waku-bg-1">1枠</div></div>
+        <div class="waku-slot" id="ws-2"><div class="waku-header waku-bg-2">2枠</div></div>
+        <div class="waku-slot" id="ws-3"><div class="waku-header waku-bg-3">3枠</div></div>
+        <div class="waku-slot" id="ws-4"><div class="waku-header waku-bg-4">4枠</div></div>
+        <div class="waku-slot" id="ws-5"><div class="waku-header waku-bg-5">5枠</div></div>
+        <div class="waku-slot" id="ws-6"><div class="waku-header waku-bg-6">6枠</div></div>
+        <div class="waku-slot" id="ws-7"><div class="waku-header waku-bg-7">7枠</div></div>
+        <div class="waku-slot" id="ws-8"><div class="waku-header waku-bg-8">8枠</div></div>
+    </div>
+
+    <div id="track">
+        <div class="finish-line"></div>
+        <div id="lanes-container"></div>
+    </div>
+</div>
+
+<script>
+    let MY_CHANNEL = "";
+    const INITIAL_MONEY = 100000;
+    const ENTRY_FEE = 10000;
+    const VOTE_FEE = 10000;
+    const WAIT_TIME = 300; 
+    const VOTE_UNIT = 1000; 
+    const TOTAL_DUMMY_MONEY = 30000; 
+
+    let users = {};
+    let participants = []; 
+    let votes = {}; 
+    let dummyVoteCounts = Array(9).fill(0); 
+    let gameState = 'WAITING';
+    let timeLeft = WAIT_TIME;
+    let timerInterval = null;
+    let availableSlots = [];
+
+    const CPU_NAMES = ["シルバーシップ", "ナツウララ", "チープインパクト", "ホッカイテイオー", "オグリキップ", "サイレンススズキ", "メグロマックイーン", "パンシャワー"];
+    const WAKU_COLORS = ["#ffffff", "#222222", "#ff0000", "#3333ff", "#ffff00", "#00aa00", "#ff8c00", "#ffc0cb"];
+
+    function startConnection() {
+        const input = document.getElementById('channel-input').value.trim();
+        if (!input) {
+            document.getElementById('login-msg').innerText = "チャンネル名を入力してください。";
+            return;
+        }
+        MY_CHANNEL = input.toLowerCase();
+        connect();
+    }
+
+    function generateHorseDataURL(color) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 8; canvas.height = 8;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.fillRect(1, 3, 5, 3); ctx.fillRect(4, 1, 3, 3);
+        ctx.fillRect(1, 6, 1, 2); ctx.fillRect(5, 6, 1, 2);
+        ctx.fillStyle = '#000'; ctx.fillRect(6, 1, 1, 1);
+        return canvas.toDataURL();
+    }
+
+    function updateSidebar() {
+        const list = document.getElementById('user-list');
+        list.innerHTML = '';
+        Object.keys(users).sort((a,b) => users[b].money - users[a].money).forEach(name => {
+            const div = document.createElement('div');
+            div.className = 'user-row';
+            let voteBadge = "";
+            if (votes[name]) {
+                votes[name].forEach(v => {
+                    voteBadge += `<span class="vote-badge waku-bg-${v}">[${v}]</span>`;
+                });
+            }
+            div.innerHTML = `<div><b>${name}${voteBadge}</b><br><span style="color:#00ff00;">${users[name].money.toLocaleString()}円</span></div>`;
+            list.appendChild(div);
+        });
+    }
+
+    function initRace() {
+        participants = [];
+        votes = {};
+        dummyVoteCounts = Array(9).fill(0);
+        gameState = 'WAITING';
+        timeLeft = WAIT_TIME;
+        
+        for(let i=1; i<=8; i++) dummyVoteCounts[i] = 1;
+        let remainingVotes = (TOTAL_DUMMY_MONEY / VOTE_UNIT) - 8;
+        for(let j=0; j < remainingVotes; j++) {
+            dummyVoteCounts[Math.floor(Math.random() * 8) + 1]++;
+        }
+
+        availableSlots = [1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
+        const subSlots = [1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
+        availableSlots = availableSlots.concat(subSlots);
+
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('denko-board').style.display = 'none';
+        document.getElementById('payout-list').innerHTML = '';
+        document.getElementById('lanes-container').innerHTML = '';
+        for(let i=1; i<=8; i++){
+            const ws = document.getElementById('ws-'+i);
+            const header = ws.querySelector('.waku-header');
+            ws.innerHTML = '';
+            ws.appendChild(header);
+        }
+        updateOdds();
+        updateSidebar();
+        startCountdown();
+    }
+
+    function startCountdown() {
+        timerInterval = setInterval(() => {
+            if (gameState !== 'WAITING') return;
+            timeLeft--;
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `出走まであと ${min}:${sec.toString().padStart(2, '0')} (参加: ${participants.length}頭)`;
+            if (timeLeft <= 0) startRaceProcess();
+        }, 1000);
+    }
+
+    function startRaceProcess() {
+        if (gameState !== 'WAITING') return;
+        clearInterval(timerInterval);
+        for(let w=1; w<=8; w++) {
+            if (!participants.some(p => p.waku === w)) {
+                participants.push({ name: CPU_NAMES[w-1], isCPU: true, waku: w });
+            }
+        }
+        runRace();
+    }
+
+    function runRace() {
+        gameState = 'RACING';
+        updateOdds();
+        document.getElementById('waiting-area').style.display = 'none';
+        const container = document.getElementById('lanes-container');
+        participants.sort((a,b) => a.waku - b.waku).forEach((p, i) => {
+            const lane = document.createElement('div');
+            lane.className = 'lane';
+            lane.innerHTML = `<div class="horse-container" id="h-${i}"><div class="horse-name waku-bg-${p.waku}">${p.name}</div><img class="horse-sprite" src="${generateHorseDataURL(WAKU_COLORS[p.waku-1])}"></div>`;
+            container.appendChild(lane);
+            p.pos = 0; p.fin = false;
+        });
+
+        const goal = document.getElementById('track').offsetWidth - 150;
+        let winners = [];
+        const loop = setInterval(() => {
+            participants.forEach((p, i) => {
+                if (!p.fin) {
+                    p.pos += Math.random() * 7 + 3;
+                    const el = document.getElementById(`h-${i}`);
+                    el.style.left = p.pos + "px";
+                    el.querySelector('img').style.transform = (Math.floor(p.pos/10)%2===0) ? "translateY(-3px)" : "none";
+                    if (p.pos >= goal) { p.fin = true; winners.push(p); }
+                }
+            });
+            if (winners.length >= participants.length) { clearInterval(loop); finalizeRace(winners); }
+        }, 50);
+    }
+
+    function finalizeRace(winners) {
+        gameState = 'FINISHED';
+        document.getElementById('denko-board').style.display = 'block';
+        
+        const top = winners[0];
+        const second = winners[1];
+        const third = winners[2];
+
+        document.getElementById('result-1').innerHTML = `1着: ${top.name} (${top.waku}枠) <span class="prize-text">+30,000円</span>`;
+        if (second) document.getElementById('result-2').innerHTML = `2着: ${second.name} (${second.waku}枠) <span class="prize-text">+10,000円</span>`;
+        if (third) document.getElementById('result-3').innerHTML = `3着: ${third.name} (${third.waku}枠) <span class="prize-text">+5,000円</span>`;
+
+        if (!top.isCPU) users[top.name].money += 30000;
+        if (second && !second.isCPU) users[second.name].money += 10000;
+        if (third && !third.isCPU) users[third.name].money += 5000;
+
+        const winWaku = top.waku;
+        const userVoteUnits = (VOTE_FEE / VOTE_UNIT); 
+        let totalActualUserVotes = 0;
+        Object.values(votes).forEach(vArr => totalActualUserVotes += vArr.length);
+        
+        const totalPool = ( (totalActualUserVotes * userVoteUnits) + (TOTAL_DUMMY_MONEY / VOTE_UNIT) ) * VOTE_UNIT;
+        
+        let winningUsers = [];
+        let userWinningTickets = 0;
+        Object.keys(votes).forEach(n => {
+            let count = votes[n].filter(v => v === winWaku).length;
+            if (count > 0) {
+                userWinningTickets += count;
+                winningUsers.push({ name: n, count: count });
+            }
+        });
+
+        const totalWinningVotes = (userWinningTickets * userVoteUnits) + dummyVoteCounts[winWaku];
+        let payoutHTML = "【的中払い戻し】<br>";
+
+        if (totalWinningVotes > 0 && winningUsers.length > 0) {
+            const dividendPerUnit = Math.floor(totalPool / totalWinningVotes);
+            winningUsers.forEach(wu => {
+                const totalPayout = dividendPerUnit * (wu.count * userVoteUnits);
+                users[wu.name].money += totalPayout;
+                payoutHTML += `${wu.name}: +${totalPayout.toLocaleString()}円<br>`;
+            });
+        } else {
+            payoutHTML += "的中者なし";
+        }
+        document.getElementById('payout-list').innerHTML = payoutHTML;
+
+        updateSidebar();
+        setTimeout(() => {
+            document.getElementById('waiting-area').style.display = 'grid';
+            initRace();
+        }, 12000);
+    }
+
+    function updateOdds() {
+        const counts = [...dummyVoteCounts];
+        const userVoteUnits = (VOTE_FEE / VOTE_UNIT); 
+        Object.values(votes).forEach(vArr => {
+            vArr.forEach(v => counts[v] += userVoteUnits);
+        });
+        
+        let totalActualUserVotes = 0;
+        Object.values(votes).forEach(vArr => totalActualUserVotes += vArr.length);
+        const currentTotalPool = (totalActualUserVotes * userVoteUnits) + (TOTAL_DUMMY_MONEY / VOTE_UNIT);
+
+        let label = (gameState === 'WAITING') ? "【オッズ】" : "【実オッズ】";
+        let html = label;
+
+        for(let i=1; i<=8; i++) {
+            let o;
+            if (gameState === 'WAITING') {
+                const simulatedTotal = currentTotalPool + userVoteUnits;
+                const simulatedWaku = counts[i] + userVoteUnits;
+                o = (simulatedTotal / simulatedWaku).toFixed(1);
+            } else {
+                o = (currentTotalPool / counts[i]).toFixed(1);
+            }
+            html += `<span class="waku-bg-${i}" style="padding:4px 8px; margin:2px; border-radius:3px; font-weight:bold;">${i}:${o}</span>`;
+        }
+        document.getElementById('odds-display').innerHTML = html;
+    }
+
+    function handleChat(name, msg) {
+        if (!users[name]) users[name] = { money: INITIAL_MONEY };
+        const cmd = msg.toLowerCase();
+
+        if (cmd === '!start' && gameState === 'WAITING') { startRaceProcess(); return; }
+
+        if (cmd === '!race' && gameState === 'WAITING' && participants.length < 16) {
+            if (!participants.find(p => p.name === name) && users[name].money >= ENTRY_FEE) {
+                users[name].money -= ENTRY_FEE;
+                const assignedWaku = availableSlots.shift();
+                participants.push({ name: name, isCPU: false, waku: assignedWaku });
+                const ws = document.getElementById('ws-' + assignedWaku);
+                const unit = document.createElement('div');
+                unit.className = 'waiting-unit';
+                unit.innerHTML = `<div class="waiting-name">${name}</div><img class="horse-sprite" src="${generateHorseDataURL(WAKU_COLORS[assignedWaku-1])}">`;
+                ws.appendChild(unit);
+                updateSidebar();
+            }
+        }
+
+        if (cmd.startsWith('!vote') && gameState === 'WAITING') {
+            const w = parseInt(cmd.split(' ')[1]);
+            if (w >= 1 && w <= 8) {
+                if (!votes[name]) votes[name] = [];
+                if (votes[name].length < 3 && !votes[name].includes(w)) {
+                    const isParticipant = participants.some(p => p.name === name);
+                    if (isParticipant && votes[name].length === 0) {
+                        votes[name].push(w);
+                    } else if (users[name].money >= VOTE_FEE) {
+                        users[name].money -= VOTE_FEE;
+                        votes[name].push(w);
+                    }
+                    updateOdds();
+                    updateSidebar();
+                }
+            }
+        }
+    }
+
+    function connect() {
+        const socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+        socket.onopen = () => {
+            socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+            socket.send('PASS SCHMOOPIIE');
+            socket.send('NICK justinfan' + Math.floor(Math.random() * 10000));
+            socket.send('JOIN #' + MY_CHANNEL);
+        };
+        socket.onmessage = (e) => {
+            const raw = e.data;
+            if (raw.includes('PING')) socket.send('PONG :tmi.twitch.tv');
+            
+            // 接続成功メッセージ(001)を受信したらゲーム開始
+            if (raw.includes(' 001 ')) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main').style.display = 'block';
+                document.getElementById('twitch-status').innerText = `● Twitch接続中: ${MY_CHANNEL}`;
+                initRace();
+            }
+
+            if (raw.includes('PRIVMSG')) {
+                const parts = raw.split(';');
+                let displayName = "Player";
+                parts.forEach(p => { if (p.startsWith('display-name=')) displayName = p.split('=')[1]; });
+                const msgPart = raw.split('PRIVMSG #' + MY_CHANNEL + ' :')[1];
+                if (msgPart) handleChat(displayName, msgPart.trim());
+            }
+        };
+        socket.onclose = () => {
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('main').style.display = 'none';
+            document.getElementById('login-msg').innerText = "接続が切断されました。";
+        };
+    }
+</script>
+</body>
+</html>
