@@ -2,177 +2,158 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Twitch 枠順競馬レース - カスタム設定版</title>
+    <title>Twitch 枠順競馬レース - 800x600 下部掲示板版</title>
     <style>
-        /* 全要素に適用してはみ出しを防止 */
         * { box-sizing: border-box; }
-
-        body { background-color: #222; color: white; font-family: "MS UI Gothic", sans-serif; margin: 0; overflow: hidden; display: flex; }
+        body { 
+            background-color: #222; color: white; font-family: "MS UI Gothic", sans-serif; 
+            margin: 0; overflow: hidden; display: flex;
+            width: 800px; height: 600px; 
+        }
         
-        /* ログイン画面のスタイル */
+        /* ログイン画面 */
         #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 800px; height: 600px;
             background: #333; display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 9999;
-            overflow-y: auto;
-            padding: 20px;
         }
         .config-group { 
-            background: #444; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6); 
-            width: 100%;
-            max-width: 420px; /* 横幅に少し余裕を持たせる */
-            height: auto;
-            border: 1px solid #555;
+            background: #444; padding: 20px; border-radius: 10px; 
+            width: 380px; border: 1px solid #555;
         }
-        .config-item { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .config-item label { font-size: 13px; margin-bottom: 5px; color: #bbb; font-weight: bold; }
-        
+        .config-item { margin-bottom: 12px; display: flex; flex-direction: column; }
+        .config-item label { font-size: 13px; margin-bottom: 4px; color: #bbb; font-weight: bold; }
         #login-screen input { 
-            width: 100%; /* 親要素の幅いっぱいに広げる */
-            padding: 10px; 
-            font-size: 16px; 
-            border-radius: 4px; 
-            border: 1px solid #222; 
-            background: #1a1a1a; 
-            color: #fff;
-            outline: none;
+            padding: 8px; font-size: 15px; border-radius: 4px; border: 1px solid #1a1a1a; 
+            background: #1a1a1a; color: #fff; width: 100%;
         }
-        
-        /* 2カラムレイアウト用 */
-        .config-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .config-row .config-item { flex: 1; margin-bottom: 0; }
-
+        .config-row { display: flex; gap: 10px; }
+        .config-row .config-item { flex: 1; }
         #login-screen button {
-            padding: 14px; font-size: 18px; cursor: pointer; background: #9146ff; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 15px; width: 100%;
-            transition: background 0.2s;
+            padding: 12px; font-size: 16px; cursor: pointer; background: #9146ff; 
+            color: white; border: none; border-radius: 6px; font-weight: bold; width: 100%; margin-top: 10px;
         }
-        #login-screen button:hover { background: #a970ff; }
 
-        /* ゲーム画面用スタイル */
-        #sidebar { width: 280px; background: #111; border-right: 2px solid #555; height: 100vh; overflow-y: auto; padding: 10px; font-size: 16px; position: relative; z-index: 1000; }
-        #controls-info { 
-            position: absolute; bottom: 20px; left: 10px; right: 10px;
-            font-size: 18px; line-height: 1.4; color: #fff; 
-            background: rgba(50,50,50,0.9); padding: 15px; border: 2px solid #888; border-radius: 8px;
+        /* サイドバー */
+        #sidebar { 
+            width: 200px; background: #111; border-right: 2px solid #555; 
+            height: 100%; overflow: hidden; display: flex; flex-direction: column; padding: 10px;
         }
-        #controls-info strong { color: #ffff00; font-size: 20px; }
-        #main { flex-grow: 1; position: relative; background: #3a7d44; height: 100vh; overflow: hidden; display: none; }
-        #track { position: relative; width: 100%; height: 750px; border-top: 4px solid #fff; border-bottom: 4px solid #fff; margin-top: 20px; background-image: linear-gradient(#458b52 50%, #3a7d44 50%); background-size: 100% 80px; }
-        .lane { position: relative; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; }
-        .finish-line { position: absolute; right: 120px; top: 0; width: 10px; height: 100%; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); }
-        .horse-container { position: absolute; left: 10px; display: flex; flex-direction: column; align-items: center; z-index: 100; }
-        .horse-name { font-size: 12px; white-space: nowrap; background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 3px; margin-bottom: 1px; }
-        .horse-sprite { width: 32px; height: 32px; image-rendering: pixelated; }
+        #user-list-container { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; }
+        #controls-info { 
+            font-size: 12px; line-height: 1.4; color: #fff; 
+            background: rgba(50,50,50,0.9); padding: 10px; border: 2px solid #888; border-radius: 8px;
+        }
+        #controls-info strong { color: #ffff00; font-size: 14px; }
+
+        /* メイン画面 */
+        #main { flex-grow: 1; position: relative; background: #3a7d44; height: 100%; overflow: hidden; display: none; }
+        
+        /* コース */
+        #track { 
+            position: absolute; bottom: 0; width: 100%; height: 360px; 
+            background-image: linear-gradient(#458b52 50%, #3a7d44 50%); background-size: 100% 44px;
+            border-top: 3px solid #fff;
+        }
+        .lane { position: relative; height: 22px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .finish-line { 
+            position: absolute; right: 50px; top: 0; width: 8px; height: 100%; 
+            background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); 
+            z-index: 10;
+        }
+
+        /* 馬の配置 */
+        .horse-container { 
+            position: absolute; left: 0px; display: flex; flex-direction: row-reverse; 
+            align-items: center; z-index: 100; width: 150px; 
+        }
+        .horse-name { font-size: 10px; white-space: nowrap; background: rgba(0,0,0,0.7); padding: 0 3px; border-radius: 2px; margin-left: 4px; }
+        .horse-sprite { width: 22px; height: 22px; image-rendering: pixelated; }
 
         /* 枠色 */
-        .waku-bg-1 { background-color: #ffffff; color: #000; } 
-        .waku-bg-2 { background-color: #000000; color: #fff; }
-        .waku-bg-3 { background-color: #ff0000; color: #fff; } 
-        .waku-bg-4 { background-color: #0000ff; color: #fff; }
-        .waku-bg-5 { background-color: #ffff00; color: #000; } 
-        .waku-bg-6 { background-color: #008000; color: #fff; }
-        .waku-bg-7 { background-color: #ff8c00; color: #fff; } 
-        .waku-bg-8 { background-color: #ffc0cb; color: #000; }
+        .waku-bg-1 { background-color: #ffffff; color: #000; } .waku-bg-2 { background-color: #000000; color: #fff; }
+        .waku-bg-3 { background-color: #ff0000; color: #fff; } .waku-bg-4 { background-color: #0000ff; color: #fff; }
+        .waku-bg-5 { background-color: #ffff00; color: #000; } .waku-bg-6 { background-color: #008000; color: #fff; }
+        .waku-bg-7 { background-color: #ff8c00; color: #fff; } .waku-bg-8 { background-color: #ffc0cb; color: #000; }
         
+        /* 電光掲示板（下部に配置） */
         #denko-board {
-            position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
-            width: 80%; background: #000; border: 4px solid #444; padding: 20px;
-            box-shadow: 0 0 20px #000; display: none; z-index: 2000;
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; background: #000; border: 3px solid #444; padding: 12px; z-index: 2000; display: none;
         }
-        .led-text { font-family: 'Courier New', monospace; color: #ff8800; text-shadow: 0 0 5px #ff4400; font-size: 26px; font-weight: bold; margin: 8px 0; border-bottom: 1px dashed #333; }
-        .prize-text { color: #ffff00; font-size: 18px; margin-left: 15px; }
-        #payout-list { color: #00ff00; font-family: 'Courier New', monospace; font-size: 22px; margin-top: 15px; }
-        #waiting-area { position: absolute; top: 100px; left: 20px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; width: 95%; z-index: 500; }
-        .waku-slot { border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); min-height: 120px; padding: 5px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; }
-        .waku-header { width: 100%; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 10px; border-radius: 3px; }
-        .waiting-unit { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 5px; }
-        .waiting-name { font-size: 10px; font-weight: bold; color: white; text-align: center; overflow: hidden; width: 100%; }
-        .user-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #333; align-items: center; }
-        .vote-badge { font-size: 12px; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-left: 5px; border: 1px solid #555; }
+        .led-row { 
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'Courier New', monospace; color: #ff8800; font-size: 16px; 
+            font-weight: bold; margin-bottom: 5px; border-bottom: 1px dashed #333;
+        }
+        .led-res-text { flex-grow: 1; display: flex; align-items: center; }
+        .waku-small-badge { display: inline-block; width: 24px; text-align: center; border-radius: 3px; margin-right: 10px; font-size: 14px; }
+        .led-prize { width: 110px; text-align: right; color: #ffff00; }
+        #payout-list { color: #00ff00; font-size: 15px; margin-top: 10px; font-family: 'Courier New', monospace; }
+
+        /* 順位表示 */
+        #live-rank { margin-top: 5px; font-size: 12px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; }
+        .rank-tag { font-weight: bold; color: #00ff00; margin-right: 4px; }
+
+        /* 待機エリア */
+        #waiting-area { 
+            position: absolute; top: 100px; left: 10px; width: 580px;
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
+        }
+        .waku-slot { border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); height: 90px; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        .waku-header { width: 100%; text-align: center; font-size: 10px; font-weight: bold; }
+        .waiting-unit { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 2px; }
+        .waiting-name { font-size: 9px; text-align: center; width: 100%; overflow: hidden; }
+
+        #timer-display { font-size: 18px; color: #ffff00; font-weight: bold; }
+        #odds-display { font-size: 11px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 2px; }
+        .user-row { border-bottom: 1px solid #333; padding: 4px 0; font-size: 11px; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="config-group">
-        <h2 style="color: #9146ff; text-align: center; margin: 0 0 20px 0;">Race Config</h2>
-        
-        <div class="config-item">
-            <label>Twitch チャンネル名</label>
-            <input type="text" id="channel-input" placeholder="example_channel">
-        </div>
-
-        <div class="config-item">
-            <label>初期所持金 (円)</label>
-            <input type="number" id="initial-money-input" value="100000">
-        </div>
-
+        <h3 style="color: #9146ff; text-align: center; margin: 0 0 15px 0;">Race Config</h3>
+        <div class="config-item"><label>Twitch チャンネル名</label><input type="text" id="channel-input"></div>
+        <div class="config-item"><label>初期所持金 (円)</label><input type="number" id="initial-money-input" value="100000"></div>
         <div class="config-row">
-            <div class="config-item">
-                <label>1着賞金 (円)</label>
-                <input type="number" id="prize1-input" value="50000">
-            </div>
-            <div class="config-item">
-                <label>初期プール (円)</label>
-                <input type="number" id="pool-input" value="30000">
-            </div>
+            <div class="config-item"><label>1着賞金</label><input type="number" id="prize1-input" value="50000"></div>
+            <div class="config-item"><label>初期プール</label><input type="number" id="pool-input" value="30000"></div>
         </div>
-
         <div class="config-row">
-            <div class="config-item">
-                <label>2着賞金 (円)</label>
-                <input type="number" id="prize2-input" value="20000">
-            </div>
-            <div class="config-item">
-                <label>待機時間 (秒)</label>
-                <input type="number" id="wait-input" value="300">
-            </div>
+            <div class="config-item"><label>2着賞金</label><input type="number" id="prize2-input" value="20000"></div>
+            <div class="config-item"><label>待機時間</label><input type="number" id="wait-input" value="300"></div>
         </div>
-
-        <div class="config-row">
-            <div class="config-item">
-                <label>3着賞金 (円)</label>
-                <input type="number" id="prize3-input" value="10000">
-            </div>
-            <div style="flex: 1;"></div> </div>
-
+        <div class="config-item" style="width: 48%;"><label>3着賞金</label><input type="number" id="prize3-input" value="10000"></div>
         <button onclick="startConnection()">設定を保存して開始</button>
-        <div id="login-msg" style="margin-top:15px; color: #ff4444; font-size: 14px; text-align: center; min-height: 1.2em;"></div>
     </div>
 </div>
 
 <div id="sidebar">
-    <h3>所持金ランキング</h3>
-    <div id="user-list"></div>
+    <h4 style="margin:0 0 5px 0; font-size: 14px;">所持金ランキング</h4>
+    <div id="user-list-container">
+        <div id="user-list"></div>
+    </div>
     <div id="controls-info">
         <strong>【ルール】</strong><br>
         <span style="color:#00ff00">!race</span> : 参加(1万/16頭迄)<br>
         <span style="color:#ffaa00">!vote 枠</span> : 投票(最大3枚)<br>
         <span style="color:#00ffff">!start</span> : 即開始<br>
-        <hr style="border:0; border-top:1px solid #555;">
+        <hr style="border:0; border-top:1px solid #555; margin: 5px 0;">
         <span style="color:#ffcc00;">★参加者は1枚目のみ無料！</span><br>
         (2枚目・3枚目は各1万必要)
     </div>
 </div>
 
 <div id="main">
-    <div style="padding:15px; background: rgba(0,0,0,0.6); position: relative; z-index: 100;">
-        <div id="twitch-status" style="font-size:14px; color:#aaa;">接続待機中...</div>
-        <div id="timer-display" style="font-size: 24px; color: #ffff00; font-weight: bold;"></div>
-        <div id="odds-display" style="margin-top:8px;"></div>
+    <div style="padding:10px; background: rgba(0,0,0,0.6);">
+        <div id="twitch-status" style="font-size:11px; color:#aaa;">接続待機中...</div>
+        <div id="timer-display"></div>
+        <div id="live-rank">順位: 待機中</div>
+        <div id="odds-display"></div>
     </div>
     
-    <div id="denko-board">
-        <div style="color: #fff; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #fff;">確定 - RESULT</div>
-        <div id="result-1" class="led-text"></div>
-        <div id="result-2" class="led-text"></div>
-        <div id="result-3" class="led-text"></div>
-        <div id="payout-list"></div>
-    </div>
-
     <div id="waiting-area">
         <div class="waku-slot" id="ws-1"><div class="waku-header waku-bg-1">1枠</div></div>
         <div class="waku-slot" id="ws-2"><div class="waku-header waku-bg-2">2枠</div></div>
@@ -187,50 +168,42 @@
     <div id="track">
         <div class="finish-line"></div>
         <div id="lanes-container"></div>
+        
+        <div id="denko-board">
+            <div style="color: #fff; font-size: 11px; margin-bottom: 5px; border-bottom: 1px solid #fff;">確定 - RESULT</div>
+            <div id="result-1" class="led-row"></div>
+            <div id="result-2" class="led-row"></div>
+            <div id="result-3" class="led-row"></div>
+            <div id="payout-list"></div>
+        </div>
     </div>
 </div>
 
 <script>
-    // JavaScript部分は前回のロジックをそのまま継承
     let MY_CHANNEL = "";
     let INITIAL_MONEY = 100000;
     const ENTRY_FEE = 10000;
     const VOTE_FEE = 10000;
     const VOTE_UNIT = 1000; 
-
-    let PRIZE_1 = 50000;
-    let PRIZE_2 = 20000;
-    let PRIZE_3 = 10000;
-    let TOTAL_DUMMY_MONEY = 30000;
-    let WAIT_TIME = 300;
-
-    let users = {};
-    let participants = []; 
-    let votes = {}; 
-    let dummyVoteCounts = Array(9).fill(0); 
-    let gameState = 'WAITING';
-    let timeLeft = WAIT_TIME;
-    let timerInterval = null;
-    let availableSlots = [];
+    let PRIZE_1 = 50000, PRIZE_2 = 20000, PRIZE_3 = 10000;
+    let TOTAL_DUMMY_MONEY = 30000, WAIT_TIME = 300;
+    let users = {}, participants = [], votes = {};
+    let dummyVoteCounts = Array(9).fill(0);
+    let gameState = 'WAITING', timeLeft = 300, timerInterval = null, availableSlots = [];
 
     const CPU_NAMES = ["シルバーシップ", "ナツウララ", "チープインパクト", "ホッカイテイオー", "オグリキップ", "サイレンススズキ", "メグロマックイーン", "パンシャワー"];
-    const WAKU_COLORS = ["#ffffff", "#222222", "#ff0000", "#3333ff", "#ffff00", "#00aa00", "#ff8c00", "#ffc0cb"];
+    const WAKU_COLORS = ["#ffffff", "#222222", "#ff0000", "#3333ff", "#ffff00", "#008000", "#ff8c00", "#ffc0cb"];
 
     function startConnection() {
-        const channelInput = document.getElementById('channel-input').value.trim();
-        if (!channelInput) {
-            document.getElementById('login-msg').innerText = "チャンネル名を入力してください。";
-            return;
-        }
-
-        MY_CHANNEL = channelInput.toLowerCase();
+        const input = document.getElementById('channel-input').value.trim();
+        if (!input) return;
+        MY_CHANNEL = input.toLowerCase();
         INITIAL_MONEY = parseInt(document.getElementById('initial-money-input').value) || 0;
         PRIZE_1 = parseInt(document.getElementById('prize1-input').value) || 0;
         PRIZE_2 = parseInt(document.getElementById('prize2-input').value) || 0;
         PRIZE_3 = parseInt(document.getElementById('prize3-input').value) || 0;
         TOTAL_DUMMY_MONEY = parseInt(document.getElementById('pool-input').value) || 0;
         WAIT_TIME = parseInt(document.getElementById('wait-input').value) || 300;
-
         connect();
     }
 
@@ -250,50 +223,30 @@
         list.innerHTML = '';
         Object.keys(users).sort((a,b) => users[b].money - users[a].money).forEach(name => {
             const div = document.createElement('div');
-            div.className = 'user-row';
-            let voteBadge = "";
-            if (votes[name]) {
-                votes[name].forEach(v => {
-                    voteBadge += `<span class="vote-badge waku-bg-${v}">[${v}]</span>`;
-                });
-            }
-            div.innerHTML = `<div><b>${name}${voteBadge}</b><br><span style="color:#00ff00;">${users[name].money.toLocaleString()}円</span></div>`;
+            div.className = "user-row";
+            div.innerHTML = `<b>${name}</b><span style="color:#0f0;">${users[name].money.toLocaleString()}円</span>`;
             list.appendChild(div);
         });
     }
 
     function initRace() {
-        participants = [];
-        votes = {};
-        dummyVoteCounts = Array(9).fill(0);
-        gameState = 'WAITING';
-        timeLeft = WAIT_TIME;
-        
+        participants = []; votes = {}; dummyVoteCounts = Array(9).fill(0);
+        gameState = 'WAITING'; timeLeft = WAIT_TIME;
         for(let i=1; i<=8; i++) dummyVoteCounts[i] = 1;
-        let remainingVotes = (TOTAL_DUMMY_MONEY / VOTE_UNIT) - 8;
-        if(remainingVotes > 0) {
-            for(let j=0; j < remainingVotes; j++) {
-                dummyVoteCounts[Math.floor(Math.random() * 8) + 1]++;
-            }
-        }
-
-        availableSlots = [1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
-        const subSlots = [1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
-        availableSlots = availableSlots.concat(subSlots);
-
+        let rem = (TOTAL_DUMMY_MONEY / VOTE_UNIT) - 8;
+        if(rem > 0) for(let j=0; j < rem; j++) dummyVoteCounts[Math.floor(Math.random() * 8) + 1]++;
+        availableSlots = [1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
         if (timerInterval) clearInterval(timerInterval);
         document.getElementById('denko-board').style.display = 'none';
-        document.getElementById('payout-list').innerHTML = '';
         document.getElementById('lanes-container').innerHTML = '';
-        for(let i=1; i<=8; i++){
+        document.getElementById('waiting-area').style.display = 'grid';
+        document.getElementById('live-rank').innerText = "順位: 待機中";
+        for(let i=1; i<=8; i++) {
             const ws = document.getElementById('ws-'+i);
-            const header = ws.querySelector('.waku-header');
-            ws.innerHTML = '';
-            ws.appendChild(header);
+            const head = ws.querySelector('.waku-header');
+            ws.innerHTML = ''; ws.appendChild(head);
         }
-        updateOdds();
-        updateSidebar();
-        startCountdown();
+        updateOdds(); updateSidebar(); startCountdown();
     }
 
     function startCountdown() {
@@ -302,7 +255,7 @@
             timeLeft--;
             const min = Math.floor(timeLeft / 60);
             const sec = timeLeft % 60;
-            document.getElementById('timer-display').innerText = `出走まであと ${min}:${sec.toString().padStart(2, '0')} (参加: ${participants.length}頭)`;
+            document.getElementById('timer-display').innerText = `出走まで ${min}:${sec.toString().padStart(2,'0')} (参加:${participants.length}頭)`;
             if (timeLeft <= 0) startRaceProcess();
         }, 1000);
     }
@@ -310,11 +263,7 @@
     function startRaceProcess() {
         if (gameState !== 'WAITING') return;
         clearInterval(timerInterval);
-        for(let w=1; w<=8; w++) {
-            if (!participants.some(p => p.waku === w)) {
-                participants.push({ name: CPU_NAMES[w-1], isCPU: true, waku: w });
-            }
-        }
+        for(let w=1; w<=8; w++) if (!participants.some(p => p.waku === w)) participants.push({ name: CPU_NAMES[w-1], isCPU: true, waku: w });
         runRace();
     }
 
@@ -326,106 +275,94 @@
         participants.sort((a,b) => a.waku - b.waku).forEach((p, i) => {
             const lane = document.createElement('div');
             lane.className = 'lane';
-            lane.innerHTML = `<div class="horse-container" id="h-${i}"><div class="horse-name waku-bg-${p.waku}">${p.name}</div><img class="horse-sprite" src="${generateHorseDataURL(WAKU_COLORS[p.waku-1])}"></div>`;
+            lane.innerHTML = `<div class="horse-container" id="h-${i}"><img class="horse-sprite" src="${generateHorseDataURL(WAKU_COLORS[p.waku-1])}"><div class="horse-name waku-bg-${p.waku}">${p.name}</div></div>`;
             container.appendChild(lane);
             p.pos = 0; p.fin = false;
         });
 
-        const goal = document.getElementById('track').offsetWidth - 150;
+        const goal = document.getElementById('track').offsetWidth - 80;
         let winners = [];
         const loop = setInterval(() => {
             participants.forEach((p, i) => {
                 if (!p.fin) {
-                    p.pos += Math.random() * 7 + 3;
+                    p.pos += Math.random() * 2.5 + 0.8;
                     const el = document.getElementById(`h-${i}`);
-                    el.style.left = p.pos + "px";
-                    el.querySelector('img').style.transform = (Math.floor(p.pos/10)%2===0) ? "translateY(-3px)" : "none";
+                    el.style.left = (p.pos - 120) + "px"; 
                     if (p.pos >= goal) { p.fin = true; winners.push(p); }
                 }
             });
+            let currentRanks = [...participants].sort((a,b) => b.pos - a.pos);
+            let rankText = "順位: ";
+            for(let k=0; k<5; k++) if(currentRanks[k]) rankText += `<span class="rank-tag">${k+1}位</span>${currentRanks[k].name} `;
+            document.getElementById('live-rank').innerHTML = rankText;
             if (winners.length >= participants.length) { clearInterval(loop); finalizeRace(winners); }
-        }, 50);
+        }, 40);
     }
 
     function finalizeRace(winners) {
         gameState = 'FINISHED';
         document.getElementById('denko-board').style.display = 'block';
-        
-        const top = winners[0];
-        const second = winners[1];
-        const third = winners[2];
+        const [top, sec, thi] = winners;
 
-        document.getElementById('result-1').innerHTML = `1着: ${top.name} (${top.waku}枠) <span class="prize-text">+${PRIZE_1.toLocaleString()}円</span>`;
-        if (second) document.getElementById('result-2').innerHTML = `2着: ${second.name} (${second.waku}枠) <span class="prize-text">+${PRIZE_2.toLocaleString()}円</span>`;
-        if (third) document.getElementById('result-3').innerHTML = `3着: ${third.name} (${third.waku}枠) <span class="prize-text">+${PRIZE_3.toLocaleString()}円</span>`;
+        // 結果に枠表示を追加
+        const setRow = (elId, label, horse, prize) => {
+            const row = document.getElementById(elId);
+            row.innerHTML = `
+                <div class="led-res-text">
+                    <span style="width:35px">${label}:</span>
+                    <span class="waku-small-badge waku-bg-${horse.waku}">${horse.waku}</span>
+                    <span>${horse.name}</span>
+                </div>
+                <span class="led-prize">+${prize.toLocaleString()}円</span>
+            `;
+        };
+
+        setRow('result-1', '1着', top, PRIZE_1);
+        setRow('result-2', '2着', sec, PRIZE_2);
+        setRow('result-3', '3着', thi, PRIZE_3);
 
         if (!top.isCPU) users[top.name].money += PRIZE_1;
-        if (second && !second.isCPU) users[second.name].money += PRIZE_2;
-        if (third && !third.isCPU) users[third.name].money += PRIZE_3;
+        if (sec && !sec.isCPU) users[sec.name].money += PRIZE_2;
+        if (thi && !thi.isCPU) users[thi.name].money += PRIZE_3;
 
         const winWaku = top.waku;
-        const userVoteUnits = (VOTE_FEE / VOTE_UNIT); 
-        let totalActualUserVotes = 0;
-        Object.values(votes).forEach(vArr => totalActualUserVotes += vArr.length);
-        
-        const totalPool = ( (totalActualUserVotes * userVoteUnits) + (TOTAL_DUMMY_MONEY / VOTE_UNIT) ) * VOTE_UNIT;
-        
-        let winningUsers = [];
-        let userWinningTickets = 0;
+        const userUnits = (VOTE_FEE/VOTE_UNIT);
+        let totalU = 0; Object.values(votes).forEach(v => totalU += v.length);
+        const pool = ((totalU * userUnits) + (TOTAL_DUMMY_MONEY/VOTE_UNIT)) * VOTE_UNIT;
+        let winnersList = [], winningTix = 0;
         Object.keys(votes).forEach(n => {
-            let count = votes[n].filter(v => v === winWaku).length;
-            if (count > 0) {
-                userWinningTickets += count;
-                winningUsers.push({ name: n, count: count });
-            }
+            let c = votes[n].filter(v => v === winWaku).length;
+            if(c>0) { winningTix += c; winnersList.push({n, c}); }
         });
 
-        const totalWinningVotes = (userWinningTickets * userVoteUnits) + dummyVoteCounts[winWaku];
-        let payoutHTML = "【的中払い戻し】<br>";
-
-        if (totalWinningVotes > 0 && winningUsers.length > 0) {
-            const dividendPerUnit = Math.floor(totalPool / totalWinningVotes);
-            winningUsers.forEach(wu => {
-                const totalPayout = dividendPerUnit * (wu.count * userVoteUnits);
-                users[wu.name].money += totalPayout;
-                payoutHTML += `${wu.name}: +${totalPayout.toLocaleString()}円<br>`;
+        const totalWinningVotes = (winningTix * userUnits) + dummyVoteCounts[winWaku];
+        let pHTML = "配当確定：<br>";
+        if (totalWinningVotes > 0 && winnersList.length > 0) {
+            const div = Math.floor(pool / totalWinningVotes);
+            winnersList.forEach(w => {
+                const pay = div * (w.c * userUnits);
+                users[w.n].money += pay;
+                pHTML += `${w.n}: +${pay.toLocaleString()}円<br>`;
             });
-        } else {
-            payoutHTML += "的中者なし";
-        }
-        document.getElementById('payout-list').innerHTML = payoutHTML;
-
+        } else pHTML += "的中なし";
+        document.getElementById('payout-list').innerHTML = pHTML;
+        
         updateSidebar();
-        setTimeout(() => {
-            document.getElementById('waiting-area').style.display = 'grid';
-            initRace();
-        }, 12000);
+        setTimeout(() => { initRace(); }, 12000);
     }
 
     function updateOdds() {
         const counts = [...dummyVoteCounts];
-        const userVoteUnits = (VOTE_FEE / VOTE_UNIT); 
-        Object.values(votes).forEach(vArr => {
-            vArr.forEach(v => counts[v] += userVoteUnits);
-        });
-        
-        let totalActualUserVotes = 0;
-        Object.values(votes).forEach(vArr => totalActualUserVotes += vArr.length);
-        const currentTotalPool = (totalActualUserVotes * userVoteUnits) + (TOTAL_DUMMY_MONEY / VOTE_UNIT);
-
-        let label = (gameState === 'WAITING') ? "【オッズ】" : "【実オッズ】";
-        let html = label;
-
+        const units = (VOTE_FEE/VOTE_UNIT);
+        Object.values(votes).forEach(vArr => vArr.forEach(v => counts[v] += units));
+        let totalU = 0; Object.values(votes).forEach(v => totalU += v.length);
+        const currentPool = (totalU * units) + (TOTAL_DUMMY_MONEY/VOTE_UNIT);
+        let html = "";
         for(let i=1; i<=8; i++) {
-            let o;
-            if (gameState === 'WAITING') {
-                const simulatedTotal = currentTotalPool + userVoteUnits;
-                const simulatedWaku = counts[i] + userVoteUnits;
-                o = (simulatedTotal / (simulatedWaku || 1)).toFixed(1);
-            } else {
-                o = (currentTotalPool / (counts[i] || 1)).toFixed(1);
-            }
-            html += `<span class="waku-bg-${i}" style="padding:4px 8px; margin:2px; border-radius:3px; font-weight:bold;">${i}:${o}</span>`;
+            let o = (gameState === 'WAITING') 
+                ? ( (currentPool + units) / (counts[i] + units) ).toFixed(1)
+                : (currentPool / (counts[i] || 1)).toFixed(1);
+            html += `<span class="waku-bg-${i}" style="padding:1px 4px; border-radius:2px; margin-right:2px; font-weight:bold;">${i}:${o}</span>`;
         }
         document.getElementById('odds-display').innerHTML = html;
     }
@@ -433,37 +370,29 @@
     function handleChat(name, msg) {
         if (!users[name]) users[name] = { money: INITIAL_MONEY };
         const cmd = msg.toLowerCase();
-
-        if (cmd === '!start' && gameState === 'WAITING') { startRaceProcess(); return; }
-
+        if (cmd === '!start' && gameState === 'WAITING') startRaceProcess();
         if (cmd === '!race' && gameState === 'WAITING' && participants.length < 16) {
             if (!participants.find(p => p.name === name) && users[name].money >= ENTRY_FEE) {
                 users[name].money -= ENTRY_FEE;
-                const assignedWaku = availableSlots.shift();
-                participants.push({ name: name, isCPU: false, waku: assignedWaku });
-                const ws = document.getElementById('ws-' + assignedWaku);
+                const slot = availableSlots.shift();
+                participants.push({ name, isCPU: false, waku: slot });
+                const ws = document.getElementById('ws-' + slot);
                 const unit = document.createElement('div');
                 unit.className = 'waiting-unit';
-                unit.innerHTML = `<div class="waiting-name">${name}</div><img class="horse-sprite" src="${generateHorseDataURL(WAKU_COLORS[assignedWaku-1])}">`;
+                unit.innerHTML = `<div class="waiting-name">${name}</div><img class="horse-sprite" src="${generateHorseDataURL(WAKU_COLORS[slot-1])}">`;
                 ws.appendChild(unit);
                 updateSidebar();
             }
         }
-
         if (cmd.startsWith('!vote') && gameState === 'WAITING') {
             const w = parseInt(cmd.split(' ')[1]);
             if (w >= 1 && w <= 8) {
                 if (!votes[name]) votes[name] = [];
                 if (votes[name].length < 3 && !votes[name].includes(w)) {
-                    const isParticipant = participants.some(p => p.name === name);
-                    if (isParticipant && votes[name].length === 0) {
-                        votes[name].push(w);
-                    } else if (users[name].money >= VOTE_FEE) {
-                        users[name].money -= VOTE_FEE;
-                        votes[name].push(w);
-                    }
-                    updateOdds();
-                    updateSidebar();
+                    const isP = participants.some(p => p.name === name);
+                    if (isP && votes[name].length === 0) votes[name].push(w);
+                    else if (users[name].money >= VOTE_FEE) { users[name].money -= VOTE_FEE; votes[name].push(w); }
+                    updateOdds(); updateSidebar();
                 }
             }
         }
@@ -480,14 +409,12 @@
         socket.onmessage = (e) => {
             const raw = e.data;
             if (raw.includes('PING')) socket.send('PONG :tmi.twitch.tv');
-            
             if (raw.includes(' 001 ')) {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main').style.display = 'block';
-                document.getElementById('twitch-status').innerText = `● Twitch接続中: ${MY_CHANNEL}`;
+                document.getElementById('twitch-status').innerText = `● Twitch: ${MY_CHANNEL}`;
                 initRace();
             }
-
             if (raw.includes('PRIVMSG')) {
                 const parts = raw.split(';');
                 let displayName = "Player";
@@ -495,11 +422,6 @@
                 const msgPart = raw.split('PRIVMSG #' + MY_CHANNEL + ' :')[1];
                 if (msgPart) handleChat(displayName, msgPart.trim());
             }
-        };
-        socket.onclose = () => {
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('main').style.display = 'none';
-            document.getElementById('login-msg').innerText = "接続が切断されました。";
         };
     }
 </script>
